@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.db
+*.sqlite3
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Docker
+*.log
+docker-compose.override.yml
+*.bak
+
+# Runtime / uploads
+uploads/
+docs/
+postgres_data/
+qdrant_data/
+
+# IDEs
+.vscode/
+.idea/
+
+# Node / frontend
+node_modules/
+dist/
+build/

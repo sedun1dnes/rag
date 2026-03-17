@@ -1,0 +1,1 @@
+export type DocumentStatus = 'uploaded' | 'processing' | 'processed' | 'error';
