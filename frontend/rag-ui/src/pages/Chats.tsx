@@ -34,7 +34,7 @@ export const Chats = () => {
             content: data.content,
             timestamp: new Date().toISOString(),
         };
-    
+
         setMessages(prev => [...prev, message]);
     };
 
