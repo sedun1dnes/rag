@@ -1,39 +1,40 @@
 import time
-from pathlib import Path
-from kv_db import KVDb, KVDbConfig
+from sqlalchemy import select, update
+from shared.db.db import SessionLocal
+from shared.db.entities.document import Document
 
-db_path = Path("/app/db/documents.json").resolve()
-kv = KVDb(KVDbConfig(db_path=db_path))
+CHECK_INTERVAL = 5  # секунд между проверками
 
-CHECK_INTERVAL = 5
+def process_document(doc: Document, db):
+    print(f"[Daemon] Processing document: {doc.path}")
 
-def process_document(doc_path: str):
-    """
-    Вставь сюда свою функцию обработки документа.
-    После успешной обработки вызываем:
-        kv.mark_processed(doc_path, processed=True)
-    """
-    print(f"[Daemon] Processing document: {doc_path}")
-    # === ВАША ФУНКЦИЯ ===
-    # Пример:
-    # with open(doc_path, "r", encoding="utf-8") as f:
-    #     data = f.read()
-    #     do_something(data)
-    kv.mark_processed(doc_path, processed=True)
-    print(f"[Daemon] Document processed: {doc_path}")
+    try:
+        time.sleep(15)
+        doc.status = "processed"
+        db.commit()
+        print(f"[Daemon] Document processed: {doc.path}")
+
+    except Exception as e:
+        doc.status = "error"
+        db.commit()
+        print(f"[Daemon] Error processing {doc.path}: {e}")
 
 def run_daemon():
     print("[Daemon] Started...")
     while True:
         try:
-            for doc in kv.list_documents(limit=1000):
-                if not doc.get("processed", False):
-                    try:
-                        process_document(doc["path"])
-                    except Exception as e:
-                        print(f"[Daemon] Error processing {doc['path']}: {e}")
+            with SessionLocal() as db:
+                query = select(Document).where(Document.status != "processed")
+                docs = db.execute(query).scalars().all()
+
+                for doc in docs:
+                    doc.status = 'processing'
+                    db.commit()
+                    process_document(doc, db)
+
         except Exception as e:
             print(f"[Daemon] Error reading DB: {e}")
+
         time.sleep(CHECK_INTERVAL)
 
 if __name__ == "__main__":
