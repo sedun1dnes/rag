@@ -1,42 +1,42 @@
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { DocumentStatus } from '../interfaces/documents';
 
 export type DocumentDto = {
-    id: string;
-    original_name: string;
-    status: DocumentStatus;
-    created_at: string;
+  id: string;
+  original_name: string;
+  status: DocumentStatus;
+  created_at: string;
 };
 
 export type ListDocumentsRequest = {
-    limit?: number;
-    query?: string;
+  limit?: number;
+  query?: string;
 };
 
 export type ListDocumentsResponse = {
-    documents: DocumentDto[];
-    limit: number;
+  documents: DocumentDto[];
+  limit: number;
 };
 
 export type UploadDocumentsRequest = {
-    files: File[];
+  files: File[];
 };
 
 export type UploadDocumentsResponse = {
-    batch_id: string;
-    time_utc: string;
-    docs_dir: string;
-    saved: Array<{
-        original: string;
-        saved_as: string;
-        path: string;
-        status: 'uploaded' | string;
-    }>;
-    rejected: Array<{
-        filename: string | null;
-        reason: string;
-    }>;
-    status_url: string;
+  batch_id: string;
+  time_utc: string;
+  docs_dir: string;
+  saved: Array<{
+    original: string;
+    saved_as: string;
+    path: string;
+    status: 'uploaded' | string;
+  }>;
+  rejected: Array<{
+    filename: string | null;
+    reason: string;
+  }>;
+  status_url: string;
 };
 
 export const api = createApi({
@@ -49,11 +49,11 @@ export const api = createApi({
       query: (arg) => ({
         url: '/documents',
         method: 'GET',
-        params: arg?.limit ? {limit: arg.limit} : undefined,
+        params: arg?.limit ? { limit: arg.limit } : undefined,
       }),
     }),
     uploadDocuments: build.mutation<UploadDocumentsResponse, UploadDocumentsRequest>({
-      query: ({files}) => {
+      query: ({ files }) => {
         const body = new FormData();
         for (const file of files) body.append('files', file);
 
@@ -67,4 +67,4 @@ export const api = createApi({
   }),
 });
 
-export const {useListDocumentsQuery, useUploadDocumentsMutation} = api;
+export const { useListDocumentsQuery, useUploadDocumentsMutation } = api;

@@ -39,11 +39,19 @@ services:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 
+      OLLAMA_HOST: "${OLLAMA_HOST}"
+      OLLAMA_PORT: "${OLLAMA_PORT}"
+
+      QDRANT_HOST: "${QDRANT_HOST}"
+      QDRANT_PORT: "${QDRANT_PORT}"
+      QDRANT_COLLECTION: "${QDRANT_COLLECTION}"
+
     depends_on:
+      - ollama
       - postgres
       - qdrant
     volumes:
-      - ./uploads:/app/uploads
+      - ./docs:/app/docs
 
   frontend:
     build:
@@ -74,3 +82,16 @@ services:
       - "${QDRANT_PORT}:6333"
     volumes:
       - ./qdrant_data:/qdrant/storage
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: always
+    command: "serve && pull embeddinggemma"
+
+volumes:
+  ollama:
