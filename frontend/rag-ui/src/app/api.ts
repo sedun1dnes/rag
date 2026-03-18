@@ -10,7 +10,7 @@ export type DocumentDto = {
 
 export type ListDocumentsRequest = {
   limit?: number;
-  query?: string;
+  search?: string;
 };
 
 export type ListDocumentsResponse = {
@@ -49,7 +49,7 @@ export const api = createApi({
       query: (arg) => ({
         url: '/documents',
         method: 'GET',
-        params: arg?.limit ? { limit: arg.limit } : undefined,
+        params: arg?.search ? { limit: arg.limit, search: arg.search } : undefined,
       }),
     }),
     uploadDocuments: build.mutation<UploadDocumentsResponse, UploadDocumentsRequest>({

@@ -14,7 +14,14 @@ export function Documents() {
     const [query, setQuery] = useState('');
     const [docs, setDocs] = useState<DocItem[]>([]);
     const [uploadDocuments, uploadState] = useUploadDocumentsMutation();
-    const { data, isLoading, isError, refetch } = useListDocumentsQuery({ limit: 200 });
+    const queryParams = useMemo(
+        () => (
+            { limit: 200, search: query }
+        ),
+        [query],
+    );
+
+    const { data, isLoading, isError, refetch } = useListDocumentsQuery(queryParams);
 
     const imageUrlsById = useMemo(
         () => {
