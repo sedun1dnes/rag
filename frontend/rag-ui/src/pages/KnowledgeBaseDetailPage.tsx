@@ -1,22 +1,8 @@
 import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-    Button,
-    Divider,
-    Icon,
-    Label,
-    Loader,
-    Table,
-    Text,
-    TextInput,
-    type LabelProps,
-} from '@gravity-ui/uikit';
+import { Button, Divider, Icon, Label, Loader, Table, Text, TextInput, type LabelProps } from '@gravity-ui/uikit';
 import { Plus, TrashBin } from '@gravity-ui/icons';
-import {
-    useGetKnowledgeBaseQuery,
-    useUploadDocumentsMutation,
-    useDeleteDocumentMutation,
-} from '../app/api';
+import { useGetKnowledgeBaseQuery, useUploadDocumentsMutation, useDeleteDocumentMutation } from '../app/api';
 import { statusMap } from './consts';
 
 export function KnowledgeBaseDetailPage() {
@@ -68,15 +54,9 @@ export function KnowledgeBaseDetailPage() {
     });
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '12px 24px',
-                }}
-            >
-                <Text variant="header-1" style={{ flex: 1 }}>
+        <div className="flex flex-col h-full">
+            <div className="flex items-center px-6 py-3">
+                <Text variant="header-1" className="flex-1">
                     {data ? data.name : '...'}
                 </Text>
                 <Button
@@ -105,12 +85,12 @@ export function KnowledgeBaseDetailPage() {
             <Divider />
 
             {data?.description && (
-                <div style={{ padding: '8px 24px' }}>
+                <div className="px-6 py-2">
                     <Text color="secondary">{data.description}</Text>
                 </div>
             )}
 
-            <div style={{ padding: '12px 24px 0' }}>
+            <div className="px-6 pt-3">
                 <TextInput
                     placeholder="Поиск по названию...."
                     value={search}
@@ -120,7 +100,7 @@ export function KnowledgeBaseDetailPage() {
                 />
             </div>
 
-            <div style={{ flex: 1, padding: '12px 24px', overflowY: 'auto' }}>
+            <div className="flex-1 px-6 py-3 overflow-y-auto">
                 {isLoading ? (
                     <Loader />
                 ) : (

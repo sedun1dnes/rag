@@ -53,7 +53,7 @@ function App() {
                 menuItems={asideHeaderItems}
                 renderFooter={({ compact }) =>
                     compact ? null : (
-                        <div style={{ padding: '8px 12px' }}>
+                        <div className="px-3 py-2">
                             <Button
                                 view="outlined"
                                 width="max"
@@ -71,7 +71,7 @@ function App() {
 
             <PageLayout.Content
                 renderContent={() => (
-                    <main style={{ height: '100%' }}>
+                    <main className="h-full">
                         <Routes>
                             <Route path="/" element={<Navigate to="/knowledge-bases" replace />} />
                             <Route path="/knowledge-bases" element={<KnowledgeBases />} />

@@ -1,5 +1,6 @@
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
+import '@gravity-ui/aikit/styles';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

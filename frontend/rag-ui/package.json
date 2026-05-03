@@ -20,6 +20,8 @@
     "react-router-dom": "^6.30.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
     "@eslint/js": "^9.39.4",
     "@gravity-ui/uikit": "^7.34.0",
     "@types/node": "^24.12.0",

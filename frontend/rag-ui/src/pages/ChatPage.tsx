@@ -1,39 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-    Button,
-    Divider,
-    Icon,
-    Loader,
-    Select,
-    Text,
-} from '@gravity-ui/uikit';
-import { MarkdownRenderer } from '@gravity-ui/aikit';
+import { Button, Divider, Icon, Loader, Select, Text } from '@gravity-ui/uikit';
 import { ArrowUp } from '@gravity-ui/icons';
-import {
-    useGetMessagesQuery,
-    useListKnowledgeBasesQuery,
-} from '../app/api';
+import { MarkdownRenderer } from '@gravity-ui/aikit';
+import { useGetMessagesQuery, useListKnowledgeBasesQuery } from '../app/api';
 import type { MessageDto } from '../app/interfaces';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 function MessageBubble({ message }: { message: Pick<MessageDto, 'id' | 'text' | 'type'> }) {
-    const isUser = message.type === 'user';
-
-    if (isUser) {
+    if (message.type === 'user') {
         return (
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <div
-                    style={{
-                        maxWidth: '60%',
-                        padding: '10px 14px',
-                        borderRadius: 12,
-                        background: 'var(--g-color-base-selection)',
-                        fontSize: 14,
-                        lineHeight: '20px',
-                    }}
-                >
+            <div className="flex justify-end">
+                <div className="max-w-[60%] px-3.5 py-2.5 rounded-xl bg-[var(--g-color-base-selection)] text-sm leading-5">
                     {message.text}
                 </div>
             </div>
@@ -41,9 +20,11 @@ function MessageBubble({ message }: { message: Pick<MessageDto, 'id' | 'text' | 
     }
 
     return (
-        <MarkdownRenderer
-            content={message.text}
-        />
+        <div className="flex justify-start">
+            <div className="max-w-[75%] text-sm leading-[22px]">
+                <MarkdownRenderer content={message.text} />
+            </div>
+        </div>
     );
 }
 
@@ -95,7 +76,7 @@ export function ChatPage() {
                     try {
                         const event = JSON.parse(part.slice(6));
                         if (event.type === 'token') {
-                            setStreamingText((prev) => prev + event.token);
+                            setStreamingText((prev: string) => prev + event.token);
                         } else if (event.type === 'done') {
                             setIsStreaming(false);
                             refetch().then(() => {
@@ -122,53 +103,36 @@ export function ChatPage() {
         }
     };
 
-    const kbOptions = (kbs ?? []).map((kb) => ({ value: kb.id, content: kb.name }));
+    const kbOptions = (kbs ?? []).map((kb: { id: string; name: string }) => ({ value: kb.id, content: kb.name }));
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ padding: '12px 24px' }}>
+        <div className="flex flex-col h-full">
+            <div className="px-6 py-3">
                 <Text variant="header-1">Чат</Text>
             </div>
             <Divider />
 
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 24px',
-                    borderBottom: '1px solid var(--g-color-line-generic)',
-                }}
-            >
+            <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--g-color-line-generic)]">
                 <Text variant="body-2" color="secondary">
-                    База знаний <span style={{ color: 'var(--g-color-text-danger)' }}>*</span>
+                    База знаний <span className="text-[var(--g-color-text-danger)]">*</span>
                 </Text>
                 <Select
                     placeholder="Выберите базу знаний"
                     value={selectedKbId ? [selectedKbId] : []}
-                    onUpdate={([v]) => setSelectedKbId(v ?? '')}
+                    onUpdate={([v]: [string]) => setSelectedKbId(v ?? '')}
                     options={kbOptions}
                     width={240}
                 />
             </div>
 
-            <div
-                style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '16px 24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                }}
-            >
+            <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
                 {msgsLoading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 32 }}>
+                    <div className="flex justify-center pt-8">
                         <Loader />
                     </div>
                 ) : (
                     <>
-                        {(msgs ?? []).map((msg) => (
+                        {(msgs ?? []).map((msg: MessageDto) => (
                             <MessageBubble key={msg.id} message={msg} />
                         ))}
                         {pendingUserText && (
@@ -182,7 +146,7 @@ export function ChatPage() {
                             />
                         )}
                         {isStreaming && !streamingText && (
-                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <div className="flex gap-1.5 items-center">
                                 <Loader size="s" />
                                 <Text color="secondary" variant="body-1">Генерация ответа...</Text>
                             </div>
@@ -192,42 +156,15 @@ export function ChatPage() {
                 )}
             </div>
 
-            <div
-                style={{
-                    padding: '12px 24px 8px',
-                    borderTop: '1px solid var(--g-color-line-generic)',
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        gap: 8,
-                        padding: '8px 12px',
-                        border: '1px solid var(--g-color-line-generic)',
-                        borderRadius: 8,
-                        background: 'var(--g-color-base-background)',
-                    }}
-                >
+            <div className="px-6 pt-3 pb-2 border-t border-[var(--g-color-line-generic)]">
+                <div className="flex items-end gap-2 px-3 py-2 border border-[var(--g-color-line-generic)] rounded-lg bg-[var(--g-color-base-background)]">
                     <textarea
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Введите ваше сообщение..."
                         rows={1}
-                        style={{
-                            flex: 1,
-                            border: 'none',
-                            outline: 'none',
-                            resize: 'none',
-                            background: 'transparent',
-                            fontSize: 14,
-                            lineHeight: '20px',
-                            fontFamily: 'inherit',
-                            color: 'var(--g-color-text-primary)',
-                            maxHeight: 120,
-                            overflowY: 'auto',
-                        }}
+                        className="flex-1 border-none outline-none resize-none bg-transparent text-sm leading-5 font-[inherit] text-[var(--g-color-text-primary)] max-h-[120px] overflow-y-auto"
                     />
                     <Button
                         view="outlined"
@@ -241,7 +178,7 @@ export function ChatPage() {
                 <Text
                     variant="caption-2"
                     color="hint"
-                    style={{ display: 'block', textAlign: 'center', marginTop: 6 }}
+                    className="block text-center mt-1.5"
                 >
                     ИИ может ошибаться. Проверяйте важную информацию.
                 </Text>

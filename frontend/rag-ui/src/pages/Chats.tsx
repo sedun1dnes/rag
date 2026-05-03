@@ -1,17 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import {
-    Button,
-    Divider,
-    Icon,
-    Loader,
-    Table,
-    Text,
-} from '@gravity-ui/uikit';
+import { Button, Divider, Icon, Loader, Table, Text } from '@gravity-ui/uikit';
 import { Plus, TrashBin } from '@gravity-ui/icons';
-import {
-    useListChatsQuery,
-    useDeleteChatMutation,
-} from '../app/api';
+import { useListChatsQuery, useDeleteChatMutation } from '../app/api';
 import { getSessionId } from '../app/session';
 
 const SESSION_ID = getSessionId();
@@ -52,15 +42,8 @@ export function Chats({ onNewChat, isCreating }: Props) {
     }));
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '12px 24px',
-                    alignItems: 'center',
-                }}
-            >
+        <div className="flex flex-col h-full">
+            <div className="flex justify-between px-6 py-3 items-center">
                 <Text variant="header-1">Чаты</Text>
                 <Button view="action" loading={isCreating} onClick={onNewChat}>
                     <Icon data={Plus} />
@@ -69,7 +52,7 @@ export function Chats({ onNewChat, isCreating }: Props) {
             </div>
             <Divider />
 
-            <div style={{ flex: 1, padding: '12px 24px', overflowY: 'auto' }}>
+            <div className="flex-1 px-6 py-3 overflow-y-auto">
                 {isLoading ? (
                     <Loader />
                 ) : (
