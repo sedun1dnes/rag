@@ -7,7 +7,7 @@ from sqlalchemy import select
 from shared.db.db import SessionLocal
 from shared.db.entities.chat import Chat
 from shared.db.entities.message import Message
-from shared.rag.pipeline import RagPipeline
+from shared.rag.pipeline import RagPipeline, MESSAGE_COUNT_REQUIRED_FOR_SUMMARY
 
 
 def list_chats():
@@ -25,6 +25,7 @@ def list_chats():
             {
                 "id": str(c.id),
                 "title": c.title,
+                "summary": c.summary,
                 "session_id": str(c.session_id),
                 "updated_at": c.updated_at.isoformat() if c.updated_at else None,
             }
@@ -49,6 +50,7 @@ def create_chat():
         return jsonify({
             "id": str(chat.id),
             "title": chat.title,
+            "summary": chat.summary,
             "session_id": str(chat.session_id),
             "updated_at": chat.updated_at.isoformat() if chat.updated_at else None,
         }), 201
@@ -99,11 +101,16 @@ def send_message(chat_id: str):
         if not chat:
             return jsonify({"error": "Chat not found"}), 404
 
-        last_msg = db.execute(
+        history_msgs = db.execute(
             select(Message)
             .where(Message.chat_id == uuid.UUID(chat_id))
-            .order_by(Message.created_at.desc())
-        ).scalars().first()
+            .order_by(Message.created_at.asc())
+        ).scalars().all()
+
+        is_first_message = len(history_msgs) == 0
+        last_msg = history_msgs[-1] if history_msgs else None
+
+        history = [{"type": m.type, "text": m.text} for m in history_msgs]
 
         user_msg = Message(
             text=text,
@@ -125,13 +132,30 @@ def send_message(chat_id: str):
             "knowledge_base_id": kb_id,
         }
 
+    use_summary = None
+    use_history = history
+
+    if len(history) > MESSAGE_COUNT_REQUIRED_FOR_SUMMARY:
+        old_msgs = history[:-MESSAGE_COUNT_REQUIRED_FOR_SUMMARY]
+        use_history = history[-MESSAGE_COUNT_REQUIRED_FOR_SUMMARY:]
+        try:
+            rag_pre = RagPipeline()
+            use_summary = rag_pre.generate_summary(old_msgs)
+            with SessionLocal() as db:
+                chat_rec = db.get(Chat, uuid.UUID(chat_id))
+                if chat_rec:
+                    chat_rec.summary = use_summary
+                    db.commit()
+        except Exception:
+            use_summary = None
+
     def generate():
         yield f"data: {json.dumps({'type': 'user_message', 'message': user_msg_data})}\n\n"
 
         full_text = ""
         try:
             rag = RagPipeline()
-            for token in rag.stream_response(text, collection_name=kb_id):
+            for token in rag.stream_response(text, collection_name=kb_id, history=use_history, summary=use_summary):
                 if token:
                     full_text += token
                     yield f"data: {json.dumps({'type': 'token', 'token': token})}\n\n"
@@ -151,9 +175,20 @@ def send_message(chat_id: str):
             chat = db.get(Chat, uuid.UUID(chat_id))
             if chat:
                 chat.updated_at = datetime.utcnow()
+
+                if is_first_message:
+                    new_title = text[:80] + ('…' if len(text) > 80 else '')
+                    new_summary = full_text[:300] + ('…' if len(full_text) > 300 else '')
+                    chat.title = new_title
+                    chat.summary = new_summary
+
             db.commit()
             db.refresh(assistant_msg)
-            yield f"data: {json.dumps({'type': 'done', 'message': {'id': str(assistant_msg.id), 'text': full_text, 'type': 'assistant', 'created_at': assistant_msg.created_at.isoformat(), 'knowledge_base_id': kb_id}})}\n\n"
+
+        if is_first_message:
+            yield f"data: {json.dumps({'type': 'chat_updated', 'title': new_title, 'summary': new_summary})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'done', 'message': {'id': str(assistant_msg.id), 'text': full_text, 'type': 'assistant', 'created_at': assistant_msg.created_at.isoformat(), 'knowledge_base_id': kb_id}})}\n\n"
 
     return Response(
         stream_with_context(generate()),

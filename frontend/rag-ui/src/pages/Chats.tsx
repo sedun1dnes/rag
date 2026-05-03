@@ -18,7 +18,7 @@ export function Chats({ onNewChat, isCreating }: Props) {
 
     const columns = [
         { id: 'title', name: 'Название' },
-        { id: 'updated_at', name: 'Дата последнего обновления' },
+        { id: 'updated_at', name: 'Обновлён' },
         { id: 'remove', name: '' },
     ];
 

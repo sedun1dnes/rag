@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Button, Divider, Icon, Loader, Select, Text } from '@gravity-ui/uikit';
+import { Button, Divider, Icon, Loader, Select, Text, TextArea } from '@gravity-ui/uikit';
 import { ArrowUp } from '@gravity-ui/icons';
 import { MarkdownRenderer } from '@gravity-ui/aikit';
-import { useGetMessagesQuery, useListKnowledgeBasesQuery } from '../app/api';
+import { useGetMessagesQuery, useListKnowledgeBasesQuery, api } from '../app/api';
+import { useDispatch } from 'react-redux';
 import type { MessageDto } from '../app/interfaces';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
@@ -30,7 +31,8 @@ function MessageBubble({ message }: { message: Pick<MessageDto, 'id' | 'text' | 
 
 export function ChatPage() {
     const { chatId = '' } = useParams<{ chatId: string }>();
-    const { data: msgs, isLoading: msgsLoading, refetch } = useGetMessagesQuery(chatId);
+    const dispatch = useDispatch();
+    const { data: msgs, isLoading: msgsLoading } = useGetMessagesQuery(chatId);
     const { data: kbs } = useListKnowledgeBasesQuery();
     const [selectedKbId, setSelectedKbId] = useState<string>('');
     const [inputText, setInputText] = useState('');
@@ -40,8 +42,17 @@ export function ChatPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [msgs, streamingText]);
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    }, [msgs, streamingText, pendingUserText]);
+
+    useEffect(
+        () => {
+            if (kbs) {
+                setSelectedKbId(kbs[0].id);
+            }
+        },
+        [kbs],
+    )
 
     const handleSend = async () => {
         const text = inputText.trim();
@@ -51,6 +62,8 @@ export function ChatPage() {
         setPendingUserText(text);
         setIsStreaming(true);
         setStreamingText('');
+
+        let capturedUserMsg: MessageDto | null = null;
 
         try {
             const response = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
@@ -75,14 +88,20 @@ export function ChatPage() {
                     if (!part.startsWith('data: ')) continue;
                     try {
                         const event = JSON.parse(part.slice(6));
-                        if (event.type === 'token') {
+                        if (event.type === 'user_message') {
+                            capturedUserMsg = event.message as MessageDto;
+                        } else if (event.type === 'token') {
                             setStreamingText((prev: string) => prev + event.token);
+                        } else if (event.type === 'chat_updated') {
+                            dispatch(api.util.invalidateTags(['Chat']));
                         } else if (event.type === 'done') {
+                            dispatch(api.util.updateQueryData('getMessages', chatId, (draft) => {
+                                if (capturedUserMsg) draft.push(capturedUserMsg);
+                                draft.push(event.message as MessageDto);
+                            }));
                             setIsStreaming(false);
-                            refetch().then(() => {
-                                setPendingUserText(null);
-                                setStreamingText('');
-                            });
+                            setPendingUserText(null);
+                            setStreamingText('');
                         }
                     } catch {
                         // skip malformed event
@@ -106,15 +125,14 @@ export function ChatPage() {
     const kbOptions = (kbs ?? []).map((kb: { id: string; name: string }) => ({ value: kb.id, content: kb.name }));
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="absolute inset-0 flex flex-col overflow-hidden">
             <div className="px-6 py-3">
                 <Text variant="header-1">Чат</Text>
             </div>
             <Divider />
-
             <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--g-color-line-generic)]">
                 <Text variant="body-2" color="secondary">
-                    База знаний <span className="text-[var(--g-color-text-danger)]">*</span>
+                    База знаний
                 </Text>
                 <Select
                     placeholder="Выберите базу знаний"
@@ -125,7 +143,7 @@ export function ChatPage() {
                 />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 flex flex-col gap-3">
                 {msgsLoading ? (
                     <div className="flex justify-center pt-8">
                         <Loader />
@@ -158,13 +176,12 @@ export function ChatPage() {
 
             <div className="px-6 pt-3 pb-2 border-t border-[var(--g-color-line-generic)]">
                 <div className="flex items-end gap-2 px-3 py-2 border border-[var(--g-color-line-generic)] rounded-lg bg-[var(--g-color-base-background)]">
-                    <textarea
+                    <TextArea
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Введите ваше сообщение..."
-                        rows={1}
-                        className="flex-1 border-none outline-none resize-none bg-transparent text-sm leading-5 font-[inherit] text-[var(--g-color-text-primary)] max-h-[120px] overflow-y-auto"
+                        view="clear"
                     />
                     <Button
                         view="outlined"

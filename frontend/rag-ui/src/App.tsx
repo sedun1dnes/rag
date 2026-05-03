@@ -71,7 +71,7 @@ function App() {
 
             <PageLayout.Content
                 renderContent={() => (
-                    <main className="h-full">
+                    <main className="h-full overflow-hidden relative">
                         <Routes>
                             <Route path="/" element={<Navigate to="/knowledge-bases" replace />} />
                             <Route path="/knowledge-bases" element={<KnowledgeBases />} />

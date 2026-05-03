@@ -44,6 +44,7 @@ export type UploadDocumentsResponse = {
 export type ChatDto = {
     id: string;
     title: string;
+    summary: string | null;
     session_id: string;
     updated_at: string | null;
 };

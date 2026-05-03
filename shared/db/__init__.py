@@ -7,6 +7,7 @@ _MIGRATIONS = [
     ("knowledge_bases", "created_at", "TIMESTAMP DEFAULT NOW()"),
     ("chats", "created_at", "TIMESTAMP DEFAULT NOW()"),
     ("chats", "updated_at", "TIMESTAMP DEFAULT NOW()"),
+    ("chats", "summary", "TEXT"),
 ]
 
 
