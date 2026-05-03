@@ -8,6 +8,7 @@ import {
     Select,
     Text,
 } from '@gravity-ui/uikit';
+import { MarkdownRenderer } from '@gravity-ui/aikit';
 import { ArrowUp } from '@gravity-ui/icons';
 import {
     useGetMessagesQuery,
@@ -40,19 +41,9 @@ function MessageBubble({ message }: { message: Pick<MessageDto, 'id' | 'text' | 
     }
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div
-                style={{
-                    maxWidth: '75%',
-                    fontSize: 14,
-                    lineHeight: '22px',
-                    color: 'var(--g-color-text-primary)',
-                    whiteSpace: 'pre-wrap',
-                }}
-            >
-                {message.text}
-            </div>
-        </div>
+        <MarkdownRenderer
+            content={message.text}
+        />
     );
 }
 
