@@ -3,3 +3,10 @@ Flask-Cors>=3.1
 SQLAlchemy>=2.0
 psycopg2-binary>=2.9
 Werkzeug>=2.3
+langchain
+langchain-text-splitters
+langchain-qdrant
+langchain_ollama
+qdrant-client
+pypdf2
+ollama

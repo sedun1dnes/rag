@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
-def chunk_document(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:
+def chunk_document(file_path: str, chunk_size: int = 500, chunk_overlap: int = 200) -> List[Document]:
     """
     Разбивает файл на чанки и возвращает список Document с метаданными
     :param file_path: путь к файлу

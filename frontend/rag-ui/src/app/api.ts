@@ -1,43 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { DocumentStatus } from '../interfaces/documents';
+import type {
+  ListDocumentsRequest,
+  ListDocumentsResponse,
+  UploadDocumentsRequest,
+  UploadDocumentsResponse,
+  SendMessageResponse,
+  SendMessageRequest,
+} from './interfaces';
 
-export type DocumentDto = {
-  id: string;
-  original_name: string;
-  status: DocumentStatus;
-  created_at: string;
-};
-
-export type ListDocumentsRequest = {
-  limit?: number;
-  search?: string;
-};
-
-export type ListDocumentsResponse = {
-  documents: DocumentDto[];
-  limit: number;
-};
-
-export type UploadDocumentsRequest = {
-  files: File[];
-};
-
-export type UploadDocumentsResponse = {
-  batch_id: string;
-  time_utc: string;
-  docs_dir: string;
-  saved: Array<{
-    original: string;
-    saved_as: string;
-    path: string;
-    status: 'uploaded' | string;
-  }>;
-  rejected: Array<{
-    filename: string | null;
-    reason: string;
-  }>;
-  status_url: string;
-};
 
 export const api = createApi({
   reducerPath: 'api',
@@ -64,7 +34,16 @@ export const api = createApi({
         };
       },
     }),
+    sendMessage: build.mutation<SendMessageResponse, SendMessageRequest>({
+      query: ({ message }) => {
+        return {
+          url: 'chat/new-message',
+          method: 'POST',
+          body: { message },
+        }
+      }
+    })
   }),
 });
 
-export const { useListDocumentsQuery, useUploadDocumentsMutation } = api;
+export const { useListDocumentsQuery, useUploadDocumentsMutation, useSendMessageMutation } = api;

@@ -32,7 +32,8 @@ def upload_documents():
             rejected.append({"filename": None, "reason": "empty filename"})
             continue
 
-        filename = secure_filename(f.filename)
+        ext = Path(f.filename).suffix
+        filename = f"{uuid4().hex}{ext}"
 
         if not filename or not _allowed(filename):
             rejected.append({"filename": f.filename, "reason": "unsupported extension"})

@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 from flask_cors import CORS
 from api.actions.documents import init_handlers as init_documents_handlers
+from api.actions.chat import init_handlers as init_chat_handlers
 
 
 def create_app() -> Flask:
@@ -14,7 +15,8 @@ def create_app() -> Flask:
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     init_documents_handlers(app)
-
+    init_chat_handlers(app)
+    
     return app
 
 

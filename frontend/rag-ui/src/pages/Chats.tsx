@@ -4,6 +4,7 @@ import {
     MessageList,
     PromptInput,
 } from '@gravity-ui/aikit';
+import { useSendMessageMutation } from '../app/api';
 import type { TChatMessage, TSubmitData } from '@gravity-ui/aikit';
 
 export const Chats = () => {
@@ -21,6 +22,7 @@ export const Chats = () => {
             timestamp: '2024-01-01T12:00:01Z',
         },
     ]);
+    const [sendMessage, sendMessageResult] = useSendMessageMutation();
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -36,6 +38,30 @@ export const Chats = () => {
         };
 
         setMessages(prev => [...prev, message]);
+
+        try {
+            const response = await sendMessage({
+                message: data.content
+            }).unwrap();
+
+            const assistantMessage: TChatMessage = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: response.response,
+                timestamp: new Date().toISOString(),
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
+        } catch (error) {
+            console.error('Ошибка при отправке сообщения:', error);
+            // const errorMessage: TChatMessage = {
+            //     id: crypto.randomUUID(),
+            //     role: '',
+            //     content: 'Не удалось отправить сообщение. Попробуйте снова.',
+            //     timestamp: new Date().toISOString(),
+            // };
+            // setMessages(prev => [...prev]);
+        }
     };
 
     return (
@@ -61,7 +87,11 @@ export const Chats = () => {
                     padding: 16,
                 }}
             >
-                <MessageList messages={messages} showTimestamp />
+                <MessageList
+                    messages={messages}
+                    showTimestamp
+                    status={sendMessageResult.isLoading ? 'streaming_loading' : 'ready'}
+                />
                 <div ref={messagesEndRef} />
             </div>
 
