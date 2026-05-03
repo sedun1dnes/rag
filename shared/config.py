@@ -7,6 +7,7 @@ class Config:
     EMBEDDING_HOST = os.environ['EMBEDDING_HOST']
     EMBEDDING_PORT = os.environ['EMBEDDING_PORT']
     EMBEDDING_MODEL = os.environ['EMBEDDING_MODEL']
+    EMBEDDING_DIMS = int(os.environ.get('EMBEDDING_DIMS', '1024'))
     
     GENERATION_HOST = os.environ['GENERATION_HOST']
     GENERATION_PORT = os.environ['GENERATION_PORT']
