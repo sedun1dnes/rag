@@ -45,7 +45,7 @@ export function Chats({ onNewChat, isCreating }: Props) {
         <div className="flex flex-col h-full">
             <div className="flex justify-between px-6 py-3 items-center">
                 <Text variant="header-1">Чаты</Text>
-                <Button view="action" loading={isCreating} onClick={onNewChat}>
+                <Button loading={isCreating} onClick={onNewChat}>
                     <Icon data={Plus} />
                     Новый чат
                 </Button>

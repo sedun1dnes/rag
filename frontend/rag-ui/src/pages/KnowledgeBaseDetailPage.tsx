@@ -60,8 +60,7 @@ export function KnowledgeBaseDetailPage() {
                     {data ? data.name : '...'}
                 </Text>
                 <Button
-                    view="action"
-                    size="l"
+                    // size="s"
                     loading={uploadState.isLoading}
                     onClick={() => fileRef.current?.click()}
                 >

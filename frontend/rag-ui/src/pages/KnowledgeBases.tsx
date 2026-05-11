@@ -80,7 +80,7 @@ export function KnowledgeBases() {
         <div className="flex flex-col h-full">
             <div className="flex justify-between px-6 py-3 items-center">
                 <Text variant="header-1">Базы знаний</Text>
-                <Button view="action" onClick={() => setCreateOpen(true)}>
+                <Button onClick={() => setCreateOpen(true)}>
                     <Icon data={Plus} />
                     Новая база знаний
                 </Button>
