@@ -123,5 +123,31 @@ services:
       - "11434:11434"
     restart: always
 
+  eval:
+    profiles: ["eval"]
+    build:
+      context: .
+      dockerfile: eval/Dockerfile
+    environment:
+      EMBEDDING_HOST: "${EMBEDDING_HOST}"
+      EMBEDDING_PORT: "${EMBEDDING_PORT}"
+      EMBEDDING_MODEL: "${EMBEDDING_MODEL}"
+      EMBEDDING_DIMS: "${EMBEDDING_DIMS}"
+
+      GENERATION_HOST: "${GENERATION_HOST}"
+      GENERATION_PORT: "${GENERATION_PORT}"
+      GENERATION_MODEL: "${GENERATION_MODEL}"
+
+      QDRANT_HOST: "${QDRANT_HOST}"
+      QDRANT_PORT: "${QDRANT_PORT}"
+      QDRANT_COLLECTION: "${QDRANT_COLLECTION}"
+
+    depends_on:
+      - qdrant
+      - ollama
+    volumes:
+      - ./eval:/app/eval
+      - ./shared:/app/shared
+
 volumes:
   ollama:

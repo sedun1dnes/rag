@@ -1,0 +1,12 @@
+langchain
+langchain-text-splitters
+langchain-qdrant
+langchain-core
+langchain_ollama
+qdrant-client
+pypdf2
+ollama
+datasets
+sqlalchemy
+psycopg2-binary
+bert-score
