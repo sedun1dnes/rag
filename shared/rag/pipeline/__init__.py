@@ -4,8 +4,6 @@ from langchain_ollama import OllamaEmbeddings, ChatOllama
 
 from ..chunker import chunk_document
 from ...config import Config
-from ...db.db import SessionLocal
-from ...db.entities.document import Document
 
 MESSAGE_COUNT_REQUIRED_FOR_SUMMARY = 3
 
@@ -79,13 +77,7 @@ class RagPipeline:
         result = self.llm.invoke([("system", prompt)])
         return result.content.strip()
 
-    def stream_response(
-        self,
-        query: str,
-        collection_name: str,
-        history: Optional[list[dict]] = None,
-        summary: Optional[str] = None,
-    ):
+    def retrieve(self, query: str, collection_name: str, k: int = 3) -> list[dict]:
         vs = QdrantVectorStore.from_existing_collection(
             embedding=self.embedder,
             collection_name=collection_name,
@@ -93,17 +85,41 @@ class RagPipeline:
         )
         docs = vs.as_retriever(
             search_type="mmr",
-            search_kwargs={"k": 3, "fetch_k": 5, "lambda_mult": 0.5},
+            search_kwargs={"k": k, "fetch_k": k * 2, "lambda_mult": 0.5},
         ).invoke(query)
+        return [
+            {
+                "doc_id": str(doc.metadata.get("doc_id", "")),
+                "page": doc.metadata.get("page"),
+                "chunk": doc.page_content,
+            }
+            for doc in docs
+        ]
+
+    def stream_response(
+        self,
+        query: str,
+        collection_name: str,
+        history: Optional[list[dict]] = None,
+        summary: Optional[str] = None,
+    ):
+        chunks = self.retrieve(query, collection_name)
+
+        def _get_filename(doc_id: str) -> str:
+            try:
+                from ...db.db import SessionLocal
+                from ...db.entities.document import Document
+                with SessionLocal() as db:
+                    doc = db.get(Document, doc_id) if doc_id else None
+                    return doc.filename if doc else "Неизвестный документ"
+            except Exception:
+                return "Неизвестный документ"
 
         docs_data = []
-        with SessionLocal() as db:
-            for doc in docs:
-                doc_id = doc.metadata.get("doc_id")
-                document = db.get(Document, doc_id) if doc_id else None
-                name = document.filename if document else "Неизвестный документ"
-                page = doc.metadata.get("page") if page else "1"
-                docs_data.append(f"""
+        for chunk in chunks:
+            name = _get_filename(chunk["doc_id"])
+            page = chunk["page"] if chunk["page"] is not None else "1"
+            docs_data.append(f"""
                     <document>
                         <name>
                             {name}
@@ -112,15 +128,16 @@ class RagPipeline:
                             {page}
                         </page>
                         <content>
-                            {doc.page_content}
+                            {chunk["chunk"]}
                         </content>
                     </document>
                 """)
 
         history_text = "\n".join([
             f"{'Пользователь' if m['type'] == 'user' else 'Ассистент'}: {m['text']}"
-            for m in history
-        ])   
+            for m in (history or [])
+        ])
+        context_text = "\n".join(docs_data)
 
         message = f"""
             Ты — RAG-ассистент. Твоя задача — ответить на текущий вопрос пользователя, используя предоставленный контекст документов.
@@ -162,7 +179,7 @@ class RagPipeline:
             </recent_messages>
 
             <context>
-            {'\n'.join(docs_data)}
+            {context_text}
             </context>
 
             <question>
